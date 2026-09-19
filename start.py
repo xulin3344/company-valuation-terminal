@@ -58,8 +58,9 @@ def main():
     try:
         print("\n  [1/3] 启动后端 FastAPI :8000")
         backend = subprocess.Popen(
-            [sys.executable, "-m", "uvicorn", "app.api.main:app", "--port", "8000", "--host", "127.0.0.1"],
+            [sys.executable, "-m", "uvicorn", "app.api.main:app", "--port", "8000", "--host", "127.0.0.1", "--reload"],
             cwd=str(BACKEND_DIR),
+
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1,
             encoding="utf-8", errors="replace",
         )
