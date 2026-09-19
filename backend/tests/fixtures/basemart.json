@@ -1,0 +1,142 @@
+{
+  "company": "泡泡玛特国际集团 (POP MART, 09992.HK)",
+  "source": "估值范例表 (Valuation Template, 2026)",
+  "unit": "百万元人民币 / 元人民币每股",
+  "wacc_inputs": {
+    "rf": 0.025,
+    "beta": 1.20,
+    "erp": 0.062,
+    "size_premium": 0.0,
+    "kd": 0.035,
+    "tax_rate": 0.23,
+    "weight_equity": 0.98
+  },
+  "wacc_expected": {
+    "cost_of_equity": 0.0994,
+    "after_tax_cost_of_debt": 0.02695,
+    "wacc_precise": 0.097951,
+    "wacc_displayed": 0.098
+  },
+  "forecast_assumptions": {
+    "base_revenue": 37120.0,
+    "growth": [0.30, 0.22, 0.16, 0.12, 0.08],
+    "gross_margin": [0.72, 0.715, 0.71, 0.705, 0.70],
+    "selling_ratio": [0.218, 0.215, 0.21, 0.205, 0.20],
+    "admin_ratio": [0.058, 0.057, 0.056, 0.055, 0.054],
+    "da_pct": [0.045, 0.042, 0.04, 0.038, 0.036],
+    "capex_pct": [0.05, 0.045, 0.042, 0.038, 0.035],
+    "nwc_pct_of_rev_delta": 0.03,
+    "tax_rate": 0.23
+  },
+  "forecast_expected": {
+    "revenue_y1": 48256.0,
+    "revenue_y5": 82605.87,
+    "ebit": [21425.66, 26080.44, 30321.60, 34036.68, 36842.22],
+    "nwc_delta": [334.08, 318.49, 282.59, 245.85, 183.57],
+    "ufcf": [15922.40, 19586.83, 22928.46, 25962.39, 28267.55],
+    "ebitda_y5": 39816.03
+  },
+  "dcf_inputs": {
+    "ufcf": [15922.40, 19586.83, 22928.46, 25962.39, 28267.55],
+    "wacc": 0.097951,
+    "g": 0.03,
+    "exit_multiple": 16.0,
+    "ebitda_terminal": 39816.03,
+    "cash": 17500.0,
+    "debt": 2500.0,
+    "minority_interest": 0.0,
+    "shares": 1343.0
+  },
+  "dcf_expected": {
+    "pv_forecast_total": 83654.69,
+    "gordon": {
+      "terminal_value": 428478.93,
+      "pv_terminal_value": 268543.52,
+      "enterprise_value": 352198.22,
+      "equity_value": 367198.22,
+      "implied_price": 273.42
+    },
+    "exit": {
+      "terminal_value": 637056.48,
+      "pv_terminal_value": 399266.75,
+      "enterprise_value": 482921.45,
+      "equity_value": 497921.45,
+      "implied_price": 370.75
+    },
+    "sensitivity": {
+      "wacc_list": [0.085, 0.09, 0.095, 0.098, 0.102, 0.108, 0.115],
+      "g_list": [0.02, 0.025, 0.03, 0.035, 0.04, 0.045],
+      "center_price": 273.42,
+      "corner_tl": 295.46,
+      "corner_br": 252.90
+    }
+  },
+  "peers": [
+    {"name": "三丽鸥 (Sanrio)", "ticker": "8136.T", "market_cap": 43000, "net_debt": -12000, "revenue": 6200, "ebitda": 2150, "ebit": 1900, "net_income": 1450},
+    {"name": "万代南梦宫控股 (Bandai Namco)", "ticker": "7832.T", "market_cap": 115000, "net_debt": -28000, "revenue": 50000, "ebitda": 7400, "ebit": 6450, "net_income": 4800},
+    {"name": "孩之宝与美泰同业组 (Hasbro & Mattel)", "ticker": "HAS/MAT", "market_cap": 65000, "net_debt": 18000, "revenue": 42000, "ebitda": 6800, "ebit": 4500, "net_income": 3200},
+    {"name": "华特迪士尼公司 (Walt Disney)", "ticker": "DIS", "market_cap": 1450000, "net_debt": 290000, "revenue": 650000, "ebitda": 125000, "ebit": 95000, "net_income": 58000}
+  ],
+  "target": {
+    "revenue": 37120.0,
+    "ebitda": 18333.0,
+    "ebit": 16533.0,
+    "net_income": 12730.0,
+    "net_debt": -15000.0
+  },
+  "comps_shares": 1343.0,
+  "comps_expected": {
+    "median_pe": 24.4792,
+    "median_ev_ebitda": 13.0629,
+    "median_ev_ebit": 17.3158,
+    "price_pe": 232.04,
+    "price_ev_ebitda": 189.49,
+    "price_ev_ebit": 224.34,
+    "price_ev_sales": 75.47,
+    "pe_range": [218.46, 248.01],
+    "ev_ebitda_range": [176.26, 202.89],
+    "consensus": 180.33
+  },
+  "sotp_segments": [
+    {"name": "THE MONSTERS 头部超级IP (LABUBU)", "ebit": 7646.0, "bear_mult": 20.0, "base_mult": 28.0, "bull_mult": 36.0},
+    {"name": "经典艺术家核心IP矩阵", "ebit": 6336.0, "bear_mult": 16.0, "base_mult": 22.0, "bull_mult": 28.0},
+    {"name": "新锐孵化与外部授权IP", "ebit": 2310.0, "bear_mult": 18.0, "base_mult": 25.0, "bull_mult": 35.0},
+    {"name": "主题乐园与线下沉浸体验", "ebit": 306.0, "bear_mult": 12.0, "base_mult": 16.0, "bull_mult": 22.0},
+    {"name": "衍生内容与海外全球化业务", "ebit": 292.0, "bear_mult": 20.0, "base_mult": 30.0, "bull_mult": 45.0}
+  ],
+  "sotp_cash": 17500.0,
+  "sotp_debt": 2500.0,
+  "sotp_shares": 1343.0,
+  "sotp_expected": {
+    "ev": [305388.0, 424886.0, 553386.0],
+    "price": [238.56, 327.54, 423.22],
+    "top_contribution_pct": 0.5039,
+    "sensitivity": {
+      "core_ebit": 16292.0,
+      "exp_ebit": 598.0,
+      "core_mults": [18.0, 22.0, 25.239553, 28.0, 32.0],
+      "exp_mults": [15.0, 20.0, 25.0, 30.0, 35.0, 40.0],
+      "corner_tl": 236.21,
+      "corner_br": 417.17,
+      "base_cell": 328.50,
+      "cell_28_30": 364.20
+    }
+  },
+  "summary_models": [
+    {"key": "dcf_gordon", "label": "DCF 永续增长法", "price": 273.42, "low": 232.40, "high": 314.43, "weight": 0.2},
+    {"key": "dcf_exit", "label": "DCF 退出乘数法", "price": 370.75, "low": 315.14, "high": 426.37, "weight": 0.2},
+    {"key": "comps_pe", "label": "可比公司 P/E 乘数法", "price": 232.04, "low": 218.46, "high": 248.01, "weight": 0.2},
+    {"key": "comps_ev_ebitda", "label": "可比公司 EV/EBITDA 乘数法", "price": 189.49, "low": 176.26, "high": 202.89, "weight": 0.2},
+    {"key": "sotp", "label": "分部加总估值法 (SOTP)", "price": 327.54, "low": 238.56, "high": 423.22, "weight": 0.2}
+  ],
+  "summary_current_price": 143.0,
+  "summary_expected": {
+    "fair_value": 278.65,
+    "weighted_low": 236.16,
+    "weighted_high": 322.98,
+    "full_low": 176.26,
+    "full_high": 426.37,
+    "upside": 0.9486,
+    "rating": "Significantly Undervalued 显著低估"
+  }
+}

@@ -1,0 +1,23 @@
+market: US
+debt_includes_lease: false
+lease_accounts: []
+accounts:
+  revenue: ["Total Revenue", "Revenue", "TOTAL REVENUE"]
+  cogs: ["Cost Of Revenue", "Cost of Revenue", "Cost of revenue", "Cost Of Goods Sold"]
+  gross_profit: ["Gross Profit"]
+  selling_expense: ["Selling General And Administration", "Selling General And Administrative Expenses", "Selling And Marketing Expenses"]
+  admin_expense: ["General And Administrative Expenses"]
+  rd_expense: ["Research And Development"]
+  ebit: ["Operating Income", "EBIT"]
+  ebitda: ["EBITDA", "Normalized EBITDA"]
+  pretax_profit: ["Pretax Income", "Pre Tax Income", "Income Before Tax"]
+  tax_expense: ["Tax Provision", "Income Tax Expense"]
+  net_income: ["Net Income Common Stockholders", "Net Income", "Net Income Common Stock"]
+  minority_pnl: ["Net Income Including Noncontrolling Interests", "Net Income Including Noncontrolling Interests Minus Preferred Stock Dividends And Other Adjustments"]
+  da: ["Depreciation Amortization Depletion", "Depreciation And Amortization", "Reconciled Depreciation", "Depreciation"]
+  capex: ["Capital Expenditure", "Capital Expenditures", "Purchase Of Property Plant And Equipment"]
+  cash: ["Cash And Cash Equivalents", "Cash Cash Equivalents And Short Term Investments", "Other Short Term Investments"]
+  debt: ["Total Debt", "Long Term Debt", "Current Debt", "Current Debt And Capital Lease Obligation", "Long Term Debt And Capital Lease Obligation"]
+  minority_equity: ["Minority Interest"]
+  shares_diluted: ["Diluted Average Shares", "Ordinary Shares Number", "Ordinary Shares Outstanding"]
+  total_equity: ["Stockholders Equity", "Total Equity", "Common Stock Equity", "Total Stockholder Equity"]

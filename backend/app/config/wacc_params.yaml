@@ -1,0 +1,18 @@
+# WACC 参数配置 — 定期更新 ERP 等市场参数
+# 数据源：Damodaran (NYU Stern), FRED
+
+US:
+  rf_ticker: "^TNX"            # yfinance ticker: US 10-Year Treasury
+  erp: 0.050                   # Damodaran 2024 US Implied ERP
+  country_risk_premium: 0.0
+  size_premium: 0.0
+  default_tax_rate: 0.21       # US federal corporate tax rate
+  beta_benchmark: "^GSPC"      # S&P 500
+
+HK:
+  rf_ticker: "^TNX"            # 暂用美债基准（港元盯住美元）
+  erp: 0.062                   # Damodaran China/HK CRP-adjusted ERP
+  country_risk_premium: 0.007  # China country risk premium
+  size_premium: 0.0
+  default_tax_rate: 0.165      # HK profits tax rate (标准税率 16.5%)
+  beta_benchmark: "^HSI"       # Hang Seng Index

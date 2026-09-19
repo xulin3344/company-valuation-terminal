@@ -1,0 +1,21 @@
+{
+  "ticker": "09992.HK",
+  "source": "akshare",
+  "health": "good",
+  "shares_diluted": 1333.5792275574113,
+  "price": 154.0,
+  "base_revenue": 37120.051999999996,
+  "wacc": 0.091875,
+  "ufcf": [
+    15560.63,
+    18446.6,
+    20855.78,
+    22436.48,
+    22908.69
+  ],
+  "ebitda_terminal": 34517.21031814097,
+  "dcf_gordon_price": 252.43125367491388,
+  "dcf_exit_price": 284.9860703675517,
+  "gordon_deviation_pct": 7.68,
+  "exit_deviation_pct": 23.13
+}
