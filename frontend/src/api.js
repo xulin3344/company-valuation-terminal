@@ -71,3 +71,8 @@ export async function exportSelectedProjects(ids) {
   const { data } = await api.post('/projects/export-selected', ids, { responseType: 'blob' })
   return data
 }
+
+export async function exportDirectPDF(params) {
+  const { data } = await api.post('/export/pdf', params, { responseType: 'blob' })
+  return data
+}

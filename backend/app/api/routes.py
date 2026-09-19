@@ -643,3 +643,37 @@ def export_project_pdf_endpoint(project_id: str):
     )
     return Response(content=pdf_bytes, media_type="application/pdf",
                      headers={"Content-Disposition": f'attachment; filename="{proj["ticker"]}_valuation.pdf"'})
+
+
+class DirectPDFExportReq(BaseModel):
+    name: Optional[str] = None
+    ticker: str
+    market: str
+    assumptions: dict
+    result: Optional[dict] = None
+
+
+@router.post("/export/pdf")
+def direct_export_pdf_endpoint(req: DirectPDFExportReq):
+    """直接将当前内存中的估值结果与核验参数导出为投行级 PDF 研报。"""
+    try:
+        val_result = req.result
+        if not val_result:
+            val_result = run_full_valuation(req.assumptions)
+    except Exception as exc:
+        raise HTTPException(status_code=422, detail=f"valuation engine failed: {exc}")
+
+    name = req.name or f"{req.ticker} 上市公司"
+    today_str = time.strftime("%Y-%m-%d")
+    pdf_bytes = generate_pdf(
+        {"name": name, "ticker": req.ticker, "market": req.market, "updated_at": today_str},
+        req.assumptions,
+        val_result,
+    )
+    safe_ticker = req.ticker.replace("/", "_")
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{safe_ticker}_valuation_report.pdf"'}
+    )
+

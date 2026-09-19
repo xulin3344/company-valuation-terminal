@@ -569,7 +569,7 @@ import { state, runAnalyze } from './store.js'
 import {
   saveProject, listProjects, loadProject, deleteProject,
   exportProject, exportProjectPDF, exportAllProjects, exportAllProjectsPDF, exportSelectedProjects,
-  searchStocks
+  exportDirectPDF, searchStocks
 } from './api.js'
 import CompanyProfileView from './components/CompanyProfileView.vue'
 import Overview from './components/Overview.vue'
@@ -963,13 +963,24 @@ async function exportPDF(id) {
 }
 
 async function exportCurrentPDF() {
-  // 如果保存了项目可直接导出
+  if (!state.assumptions) return
   try {
-    await saveCurrent()
-    const latest = projects.value[projects.value.length - 1]
-    if (latest) exportPDF(latest.id)
+    const companyName = state.analyzeResult?.company_name || `${state.ticker} 上市公司`
+    const blob = await exportDirectPDF({
+      name: companyName,
+      ticker: state.ticker,
+      market: state.market,
+      assumptions: state.assumptions,
+      result: state.result
+    })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${state.ticker}_智能估值深度研报_${new Date().toISOString().slice(0, 10)}.pdf`
+    a.click()
+    URL.revokeObjectURL(url)
   } catch (e) {
-    alert('请先保存项目后再导出PDF')
+    alert('导出PDF研报失败: ' + (e?.message || e))
   }
 }
 
