@@ -45,7 +45,7 @@ def yf_frame_to_latest(df):
     return balance
 
 
-def yf_frames_to_raw(ticker: str, income_df, balance_df, cashflow_df, price=None, currency="USD") -> RawFinancials:
+def yf_frames_to_raw(ticker: str, income_df, balance_df, cashflow_df, price=None, currency="USD", market="US") -> RawFinancials:
     income_series, labels = yf_frame_to_series(income_df)
     cash_series, _ = yf_frame_to_series(cashflow_df)
     merged = dict(income_series)
@@ -54,7 +54,7 @@ def yf_frames_to_raw(ticker: str, income_df, balance_df, cashflow_df, price=None
         merged[key] = values
     balance = yf_frame_to_latest(balance_df)
     return RawFinancials(
-        market="US",
+        market=market,
         ticker=ticker,
         currency=currency,
         unit_scale=1e-6,
@@ -66,10 +66,39 @@ def yf_frames_to_raw(ticker: str, income_df, balance_df, cashflow_df, price=None
     )
 
 
+def normalize_yf_ticker(ticker: str, market: str = None) -> tuple[str, str, str]:
+    """标准化 Yahoo Finance 代码，返回 (yf_ticker, market, default_currency)。"""
+    raw = str(ticker).strip()
+    digits = "".join(filter(str.isdigit, raw))
+    m = str(market).upper() if market else None
+
+    # A 股识别
+    if m == "CN" or (m is None and len(digits) == 6 and not raw.upper().endswith(".HK")):
+        if raw.upper().endswith((".SZ", ".SS", ".BJ")):
+            return raw.upper(), "CN", "CNY"
+        if digits.startswith(("6", "9", "688")):
+            return f"{digits}.SS", "CN", "CNY"
+        elif digits.startswith(("8", "4", "920")):
+            return f"{digits}.BJ", "CN", "CNY"
+        else:
+            return f"{digits}.SZ", "CN", "CNY"
+
+    # 港股识别
+    if m == "HK" or (m is None and (raw.upper().endswith(".HK") or len(digits) == 5)):
+        clean = raw.split(".")[0].strip()
+        code = digits.zfill(4)[-4:]  # 港股在 yfinance 常用 4 位，如 0700.HK
+        return f"{code}.HK", "HK", "HKD"
+
+    return raw, m or "US", "USD"
+
+
 class YFinanceProvider(FinancialProvider):
     name = "yfinance"
     MAX_RETRIES = 2
     RETRY_DELAY = 1.5  # 秒，指数退避基数
+
+    def __init__(self, market: str = None):
+        self.market = str(market).upper() if market else None
 
     def fetch(self, ticker: str) -> RawFinancials:
         try:
@@ -77,12 +106,13 @@ class YFinanceProvider(FinancialProvider):
         except ImportError as exc:
             raise ProviderError(f"yfinance not installed: {exc}")
 
+        yf_ticker, effective_market, default_curr = normalize_yf_ticker(ticker, self.market)
         income_df = balance_df = cashflow_df = None
         last_exc = None
 
         for attempt in range(self.MAX_RETRIES + 1):
             try:
-                t = yf.Ticker(ticker, session=self._make_session())
+                t = yf.Ticker(yf_ticker, session=self._make_session())
                 income_df = self._safe(getattr, (t, "income_stmt"))
                 balance_df = self._safe(getattr, (t, "balance_sheet"))
                 cashflow_df = self._safe(getattr, (t, "cashflow"))
@@ -95,25 +125,28 @@ class YFinanceProvider(FinancialProvider):
             income_empty = income_df is None or getattr(income_df, "empty", True)
             balance_empty = balance_df is None or getattr(balance_df, "empty", True)
             if income_empty and balance_empty:
-                last_exc = ProviderError(f"yfinance returned no statement data for {ticker}")
+                last_exc = ProviderError(f"yfinance returned no statement data for {yf_ticker}")
                 if attempt < self.MAX_RETRIES:
                     _time.sleep(self.RETRY_DELAY * (2 ** attempt))
                 continue
             break  # 成功获取数据
         else:
             raise ProviderError(
-                f"yfinance failed after {self.MAX_RETRIES + 1} attempts for {ticker} "
+                f"yfinance failed after {self.MAX_RETRIES + 1} attempts for {yf_ticker} "
                 f"(likely rate-limited by Yahoo): {last_exc}"
             )
 
         price = self._safe_price(t)
-        currency = "USD"
+        currency = default_curr
         try:
             info = t.info or {}
-            currency = info.get("financialCurrency") or "USD"
+            currency = info.get("financialCurrency") or default_curr
         except Exception:
             pass
-        return yf_frames_to_raw(ticker, income_df, balance_df, cashflow_df, price=price, currency=currency)
+        return yf_frames_to_raw(
+            ticker, income_df, balance_df, cashflow_df, price=price, currency=currency, market=effective_market
+        )
+
 
     @staticmethod
     def _make_session():

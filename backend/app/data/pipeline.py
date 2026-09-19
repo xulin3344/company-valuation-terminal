@@ -16,12 +16,14 @@ CONFIG_DIR = pathlib.Path(__file__).resolve().parents[1] / "config"
 PROVIDERS_BY_MARKET = {
     "HK": (AkshareProvider, YFinanceProvider),
     "US": (YFinanceProvider, AkshareProvider),
+    "CN": (AkshareProvider, YFinanceProvider),
 }
 
 # WACC 默认值（动态获取失败时的 fallback）
 DEFAULT_WACC_BY_MARKET = {
     "HK": {"rf": 0.042, "erp": 0.062, "size_premium": 0.0, "tax_rate": 0.165},
     "US": {"rf": 0.042, "erp": 0.050, "size_premium": 0.0, "tax_rate": 0.21},
+    "CN": {"rf": 0.021, "erp": 0.060, "size_premium": 0.0, "tax_rate": 0.25},
 }
 
 
@@ -40,7 +42,7 @@ def _load_wacc_config(market: str) -> dict:
 def load_mapper(market: str) -> AccountMapper:
     path = CONFIG_DIR / f"mapper_{str(market).lower()}.yaml"
     if not path.exists():
-        raise ValueError(f"unsupported market: {market} (expected one of: hk, us)")
+        raise ValueError(f"unsupported market: {market} (expected one of: hk, us, cn)")
     config = yaml.safe_load(path.read_text(encoding="utf-8"))
     return AccountMapper(config)
 
@@ -49,7 +51,8 @@ def build_providers(market: str) -> list:
     market = str(market).upper()
     if market not in PROVIDERS_BY_MARKET:
         raise ValueError(f"unsupported market: {market}")
-    return [cls() for cls in PROVIDERS_BY_MARKET[market]]
+    return [cls(market=market) for cls in PROVIDERS_BY_MARKET[market]]
+
 
 
 def analyze(ticker: str, market: str, manual_data: dict = None) -> StandardFinancials:

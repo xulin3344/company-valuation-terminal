@@ -182,6 +182,29 @@ export const STOCK_DATABASE = [
 
   // A股 (CN)
   {
+    ticker: '002036',
+    name: '联创电子',
+    fullName: '联创电子科技股份有限公司 (Lianchuang Electronic Technology Co., Ltd.)',
+    enName: 'Lianchuang Electronic',
+    market: 'CN',
+    exchange: '深圳证券交易所主板 (SZSE: 002036)',
+    ipoYear: '2004年',
+    currency: 'CNY (人民币)',
+    pinyin: ['lcdz', 'lianchuang', 'lianchuangdianzi'],
+    sector: '光学光电子 / 智能驾驶镜头与触控显示',
+    businessModel: '核心聚焦车载光学（ADAS高级辅助驾驶镜头与影像模组）、手机及高清广角镜头、触控显示一体化模组研发与制造，为全球主流新能源车企（如特斯拉、蔚小理等）与智能终端龙头核心供应商。',
+    companyType: '智能驾驶车载光学核心标的与精密光电制造',
+    typeTag: '智驾车载光学/精密制造',
+    financialTraits: ['车载光学镜头放量高速增长', '前期重资产资本开支与折旧压力较大', '消费电子阶段性周期影响净利润'],
+    advice: {
+      primary: { method: 'dcf_exit', name: 'DCF 退出乘数法 (EV/EBITDA)', weight: '40%', reason: '光电重资产投资后形成产能壁垒，当前处于智驾光学放量爬坡期，以EV/EBITDA退出乘数能更好评估未来稳态去杠杆能力与企业价值。' },
+      secondary: { method: 'comps_ev_ebitda', name: 'EV/EBITDA 同行可比倍数', weight: '30%', reason: '对标立讯精密、舜宇光学等全球精密光电制造业龙头，剔除阶段性折旧与负债结构差异。' },
+      tertiary: { method: 'sotp', name: 'SOTP 分部加总估值', weight: '20%', reason: '车载光学(高估值高成长)与传统触控显示(较低倍数)业务属性分化明显，分拆加总具备很强参考价值。' },
+      auxiliary: { method: 'comps_pe', name: 'P/E 市盈率法', weight: '10%', reason: '若当期净利润受资产减值或消费电子周期扰动出现亏损，单一P/E指标容易失真，需辅助参考。' },
+      caution: { method: 'dcf_gordon', name: 'Gordon 永续法', note: '技术与行业竞争格局演进较快，永续增长率假设宜保守稳健。' }
+    }
+  },
+  {
     ticker: '600519',
     name: '贵州茅台',
     fullName: '贵州茅台酒股份有限公司 (Kweichow Moutai Co., Ltd.)',
@@ -190,6 +213,7 @@ export const STOCK_DATABASE = [
     exchange: '上海证券交易所主板 (SSE: 600519)',
     ipoYear: '2001年',
     currency: 'CNY (人民币)',
+    pinyin: ['gzmt', 'mt', 'maotai', 'guizhoumaotai'],
     sector: '白酒与高端消费品',
     businessModel: '核心为贵州茅台酒系列产品的生产与销售，拥有顶级独占的地理标志品牌心智护城河，销售渠道涵盖直销渠道（i茅台）、传统经销商、商超电商。',
     companyType: '中国核心资产顶级品牌护城河与永续现金牛',
@@ -212,6 +236,7 @@ export const STOCK_DATABASE = [
     exchange: '深圳证券交易所创业板 (SZSE: 300750)',
     ipoYear: '2018年',
     currency: 'CNY (人民币)',
+    pinyin: ['ndsd', 'ningde', 'catl', 'ningdeshidai'],
     sector: '新能源动力电池与储能电池制造',
     businessModel: '全球领先的锂离子电池研发与制造企业，涵盖动力电池系统（神行/麒麟电池等）、储能电池系统及电池回收材料循环体系。',
     companyType: '全球动力电池与储能全球制造霸主',
@@ -224,6 +249,75 @@ export const STOCK_DATABASE = [
       auxiliary: { method: 'sotp', name: 'SOTP 分部法', weight: '10%', reason: '动力电池主营 vs 储能高增长分拆校验。' },
       caution: { method: 'dcf_gordon', name: 'Gordon 永续法', note: '动力电池面临固态电池等长期技术路线革新，永续增长率g需保守。' }
     }
+  },
+  {
+    ticker: '002594',
+    name: '比亚迪',
+    fullName: '比亚迪股份有限公司 (BYD Company Limited)',
+    enName: 'BYD A',
+    market: 'CN',
+    exchange: '深圳证券交易所主板 (SZSE: 002594)',
+    ipoYear: '2011年',
+    currency: 'CNY (人民币)',
+    pinyin: ['byd', 'biyadi'],
+    sector: '新能源乘用车 / 动力电池与电子制造',
+    businessModel: '全球新能源汽车领军企业，拥有动力电池（刀片电池）、电驱动、整车垂直一体化全产业链，海外出口与高端子品牌（腾势/仰望/方程豹）快速布局。',
+    companyType: '全产业链垂直整合新能源汽车霸主',
+    typeTag: '新能源车全产业链',
+    financialTraits: ['年营收超千亿爆发高增', '垂直一体化成本优势', '研发投入巨大'],
+    advice: {
+      primary: { method: 'sotp', name: 'SOTP 分部加总估值', weight: '45%', reason: '乘用车整车 + 动力电池外供 + 电子代工多业务条线，分部加总最符合产业视角。' },
+      secondary: { method: 'dcf_exit', name: 'DCF 退出乘数法', weight: '30%', reason: '销量与利润爆发期，现金流折现检验中远期自由现金回报。' },
+      tertiary: { method: 'comps_pe', name: 'P/E 市盈率法', weight: '15%', reason: '对标特斯拉与传统乘用车制造梯队。' },
+      auxiliary: { method: 'comps_ev_ebitda', name: 'EV/EBITDA 倍数法', weight: '10%', reason: '重资产电池制造与整车综合企业价值对标。' },
+      caution: { method: 'dcf_gordon', name: 'Gordon 永续法', note: '汽车行业处于技术迭代与价格战周期，永续增长率需理智。' }
+    }
+  },
+  {
+    ticker: '002475',
+    name: '立讯精密',
+    fullName: '立讯精密工业股份有限公司 (Luxshare Precision Industry Co., Ltd.)',
+    enName: 'Luxshare Precision',
+    market: 'CN',
+    exchange: '深圳证券交易所主板 (SZSE: 002475)',
+    ipoYear: '2010年',
+    currency: 'CNY (人民币)',
+    pinyin: ['lxjm', 'lixun', 'lixunjimi'],
+    sector: '精密制造 / 消费电子 / 汽车智能化',
+    businessModel: '全球领先的精密零组件与整机组装ODM/EMS巨头，深度绑定全球消费电子顶流客户，并纵向拓展汽车线束、连接器及服务器高速互联。',
+    companyType: '精密制造与消费电子高端供应链龙头',
+    typeTag: '精密智造/果链龙头',
+    financialTraits: ['高ROE与高资产周转', '研发与工艺能力强', '客户集中度相对较高'],
+    advice: {
+      primary: { method: 'comps_pe', name: 'P/E 市盈率法', weight: '40%', reason: '代工与精密制造板块机构公认最核心定价方式。' },
+      secondary: { method: 'dcf_exit', name: 'DCF 退出乘数法', weight: '35%', reason: '稳健经营现金流支撑DCF内生估值。' },
+      tertiary: { method: 'comps_ev_ebitda', name: 'EV/EBITDA 倍数', weight: '15%', reason: '对标全球电子制造服务同业。' },
+      auxiliary: { method: 'sotp', name: 'SOTP 分部法', weight: '10%', reason: '汽车与通讯业务快速成长可拆分估值。' },
+      caution: { method: 'dcf_gordon', name: 'Gordon 永续法', note: '终端迭代快，永续模型需审慎。' }
+    }
+  },
+  {
+    ticker: '300308',
+    name: '中际旭创',
+    fullName: '中际旭创股份有限公司 (InnoLight Technology)',
+    enName: 'InnoLight',
+    market: 'CN',
+    exchange: '深圳证券交易所创业板 (SZSE: 300308)',
+    ipoYear: '2012年',
+    currency: 'CNY (人民币)',
+    pinyin: ['zjxc', 'zhongji', 'zhongjixuchuang'],
+    sector: '光通信 / 800G/1.6T 高速光模块 / AI 算力互联',
+    businessModel: '全球高速光通信收发模块龙头，主力产品包括 400G/800G/1.6T 光模块，深度直供北美顶级云厂商（如微软、谷歌、Meta、英伟达AI集群）。',
+    companyType: '全球高速光模块 AI 算力互联霸主',
+    typeTag: 'AI算力基础设施/光模块',
+    financialTraits: ['业绩随全球AI算力爆发式高增', '技术与良率壁垒深厚', '海外高端产品占比极高'],
+    advice: {
+      primary: { method: 'comps_pe', name: 'P/E / PEG 市盈率法', weight: '45%', reason: 'AI 算力高速光模块业绩兑现极快，动态 PE 与 PEG 为全市场最主流定价方式。' },
+      secondary: { method: 'dcf_exit', name: 'DCF 退出乘数法', weight: '35%', reason: '测算未来 3~5 年算力中心扩张期自由现金流积累与终值倍数。' },
+      tertiary: { method: 'comps_ev_ebitda', name: 'EV/EBITDA 倍数', weight: '10%', reason: '对标通信设备行业平均倍数。' },
+      auxiliary: { method: 'dcf_gordon', name: 'Gordon 永续法', weight: '10%', reason: '需注意光通信代际更替周期。' },
+      caution: { method: 'sotp', name: 'SOTP 分部法', note: '光模块主营极度聚焦，无需分拆。' }
+    }
   }
 ]
 
@@ -235,14 +329,25 @@ export function fuzzySearchStocks(query, filterMarket = '') {
   const q = query.trim().toLowerCase()
 
   return STOCK_DATABASE.filter(item => {
+    if (filterMarket && item.market !== filterMarket) {
+      // 仍允许跨市场匹配，但在排序时加权
+    }
     if (item.ticker.toLowerCase().includes(q)) return true
     if (item.name.toLowerCase().includes(q)) return true
     if (item.fullName && item.fullName.toLowerCase().includes(q)) return true
     if (item.enName.toLowerCase().includes(q)) return true
     if (item.sector && item.sector.toLowerCase().includes(q)) return true
+    if (item.pinyin && item.pinyin.some(p => p.includes(q))) return true
     return false
+  }).sort((a, b) => {
+    if (a.ticker.toLowerCase() === q) return -1
+    if (b.ticker.toLowerCase() === q) return 1
+    if (a.name.toLowerCase() === q) return -1
+    if (b.name.toLowerCase() === q) return 1
+    return 0
   }).slice(0, 8)
 }
+
 
 /**
  * 根据股票代码及财报数据，智能生成公司画像与专业估值适配建议

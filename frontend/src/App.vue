@@ -465,18 +465,26 @@ const showGuide = ref(true)
 
 function onSearchInput() {
   selectedIndex.value = -1
-  if (!tickerInput.value || !tickerInput.value.trim()) {
+  const raw = (tickerInput.value || '').trim()
+  if (!raw) {
     suggestions.value = []
     showSuggestions.value = false
     return
   }
-  suggestions.value = fuzzySearchStocks(tickerInput.value, marketInput.value)
+  // 智能市场识别：若输入为 6 位数字，自动切换为 CN A股；5 位数字切换为 HK 港股
+  if (/^\d{6}$/.test(raw)) {
+    marketInput.value = 'CN'
+  } else if (/^\d{5}$/.test(raw)) {
+    marketInput.value = 'HK'
+  }
+  suggestions.value = fuzzySearchStocks(raw, marketInput.value)
   showSuggestions.value = suggestions.value.length > 0
 }
 
 function onSearchFocus() {
-  if (tickerInput.value && tickerInput.value.trim()) {
-    suggestions.value = fuzzySearchStocks(tickerInput.value, marketInput.value)
+  const raw = (tickerInput.value || '').trim()
+  if (raw) {
+    suggestions.value = fuzzySearchStocks(raw, marketInput.value)
     showSuggestions.value = suggestions.value.length > 0
   }
 }
@@ -494,13 +502,30 @@ function navigateResults(direction) {
 }
 
 function handleEnterKey() {
+  const raw = (tickerInput.value || '').trim()
   if (showSuggestions.value && selectedIndex.value >= 0 && suggestions.value[selectedIndex.value]) {
     chooseSuggestion(suggestions.value[selectedIndex.value])
+  } else if (showSuggestions.value && suggestions.value.length > 0) {
+    // 优先检查首条精确或前缀匹配的名称建议（如输入“联创电子”直接按回车或点分析）
+    const topMatch = suggestions.value[0]
+    if (topMatch.name === raw || topMatch.ticker === raw) {
+      chooseSuggestion(topMatch)
+      return
+    }
+    showSuggestions.value = false
+    if (/^\d{6}$/.test(raw)) {
+      marketInput.value = 'CN'
+    }
+    doAnalyze()
   } else {
     showSuggestions.value = false
+    if (/^\d{6}$/.test(raw)) {
+      marketInput.value = 'CN'
+    }
     doAnalyze()
   }
 }
+
 
 // 侧边栏拖拽调宽
 const sidebarWidth = ref(270)

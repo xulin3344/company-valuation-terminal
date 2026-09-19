@@ -4,11 +4,27 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def _normalize_ticker_for_yf(ticker: str) -> str:
+    raw = str(ticker).strip()
+    digits = "".join(filter(str.isdigit, raw))
+    if len(digits) == 6 and not raw.upper().endswith((".SZ", ".SS", ".BJ", ".HK")):
+        if digits.startswith(("6", "9", "688")):
+            return f"{digits}.SS"
+        elif digits.startswith(("8", "4", "920")):
+            return f"{digits}.BJ"
+        else:
+            return f"{digits}.SZ"
+    if len(digits) == 5 and not raw.upper().endswith(".HK"):
+        return f"{digits.zfill(4)[-4:]}.HK"
+    return raw
+
+
 def _safe_yf_info(ticker: str) -> dict:
     """安全获取 yfinance info 字典，失败返回空字典。"""
     try:
         import yfinance as yf
-        t = yf.Ticker(ticker)
+        normalized = _normalize_ticker_for_yf(ticker)
+        t = yf.Ticker(normalized)
         return t.info or {}
     except Exception as exc:
         logger.warning("yfinance info fetch failed for %s: %s", ticker, exc)
@@ -16,7 +32,10 @@ def _safe_yf_info(ticker: str) -> dict:
 
 
 def fetch_risk_free_rate(market: str = "US") -> float:
-    """获取无风险利率：美股用 10 年期美债 ^TNX，失败回退默认值。"""
+    """获取无风险利率：CN 默认为中国10年期国债 2.1%；US/HK 用 10 年期美债 ^TNX。"""
+    m = str(market).upper()
+    if m == "CN":
+        return 0.021
     try:
         import yfinance as yf
         tnx = yf.Ticker("^TNX")
@@ -28,7 +47,8 @@ def fetch_risk_free_rate(market: str = "US") -> float:
     except Exception as exc:
         logger.warning("fetch_risk_free_rate failed: %s", exc)
     # 回退默认值
-    return {"US": 0.042, "HK": 0.042}.get(market, 0.042)
+    return {"US": 0.042, "HK": 0.042, "CN": 0.021}.get(m, 0.042)
+
 
 
 def fetch_beta(ticker: str) -> float:
@@ -79,7 +99,9 @@ def fetch_analyst_estimates(ticker: str) -> dict:
     estimates = {}
     try:
         import yfinance as yf
-        t = yf.Ticker(ticker)
+        normalized = _normalize_ticker_for_yf(ticker)
+        t = yf.Ticker(normalized)
+
         # 价格目标
         try:
             pt = t.analyst_price_targets
@@ -103,13 +125,27 @@ def fetch_analyst_estimates(ticker: str) -> dict:
             pass
     except Exception as exc:
         logger.warning("fetch_analyst_estimates failed for %s: %s", ticker, exc)
-    return estimates
+    return _sanitize_floats(estimates)
+
+
+def _sanitize_floats(obj):
+    """递归将 dict/list 中的 NaN/Inf 替换为 None，确保 JSON 序列化合法。"""
+    import math
+    if isinstance(obj, float):
+        if math.isnan(obj) or math.isinf(obj):
+            return None
+        return obj
+    if isinstance(obj, dict):
+        return {k: _sanitize_floats(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_sanitize_floats(v) for v in obj]
+    return obj
 
 
 def fetch_market_overview(ticker: str) -> dict:
     """获取行情概览数据：52周高低、市盈率等。"""
     info = _safe_yf_info(ticker)
-    return {
+    res = {
         "market_cap": info.get("marketCap"),
         "enterprise_value": info.get("enterpriseValue"),
         "trailing_pe": info.get("trailingPE"),
@@ -120,6 +156,8 @@ def fetch_market_overview(ticker: str) -> dict:
         "dividend_yield": info.get("dividendYield"),
         "shares_outstanding": info.get("sharesOutstanding"),
     }
+    return _sanitize_floats(res)
+
 
 
 def fetch_dynamic_peers(ticker: str, max_peers: int = 6) -> list:
@@ -170,14 +208,23 @@ def fetch_dynamic_peers(ticker: str, max_peers: int = 6) -> list:
             mc = pi.get("marketCap", 0) or 0
             if mc == 0:
                 continue
+            rev = round((pi.get("totalRevenue", 0) or 0) / 1e6, 1)
+            ebitda = round((pi.get("ebitda", 0) or 0) / 1e6, 1)
+            op_inc = pi.get("operatingIncome")
+            if op_inc is not None and op_inc != 0:
+                ebit = round(op_inc / 1e6, 1)
+            elif ebitda:
+                ebit = round(ebitda * 0.85, 1)
+            else:
+                ebit = round(rev * 0.15, 1)
             peers.append({
                 "name": pi.get("shortName", peer_ticker),
                 "ticker": peer_ticker,
                 "market_cap": round(mc / 1e6, 1),
                 "net_debt": round(((pi.get("totalDebt", 0) or 0) - (pi.get("totalCash", 0) or 0)) / 1e6, 1),
-                "revenue": round((pi.get("totalRevenue", 0) or 0) / 1e6, 1),
-                "ebitda": round((pi.get("ebitda", 0) or 0) / 1e6, 1),
-                "ebit": round((pi.get("operatingIncome", 0) or 0) / 1e6, 1),
+                "revenue": rev,
+                "ebitda": ebitda,
+                "ebit": ebit,
                 "net_income": round((pi.get("netIncomeToCommon", 0) or 0) / 1e6, 1),
             })
             if len(peers) >= max_peers:
@@ -185,3 +232,4 @@ def fetch_dynamic_peers(ticker: str, max_peers: int = 6) -> list:
         except Exception:
             continue
     return peers
+

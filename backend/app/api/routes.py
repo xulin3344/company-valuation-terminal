@@ -21,7 +21,8 @@ router = APIRouter(prefix="/api")
 
 class AnalyzeRequest(BaseModel):
     ticker: str
-    market: str = Field(..., description="HK or US")
+    market: str = Field(..., description="HK, US or CN")
+
 
 
 class RecalculateRequest(BaseModel):
@@ -147,8 +148,9 @@ def analyze_endpoint(req: AnalyzeRequest):
             "shares": shares,
         }
 
-    sotp_preset = get_sotp_preset(ticker)
+    sotp_preset = get_sotp_preset(req.ticker)
     sotp_segments = sotp_preset["segments"] if sotp_preset else []
+
     sotp_params = None
     sotp_weight = sotp_preset.get("weight", 0.2) if sotp_preset else 0.2
     rem_weight = round((1.0 - sotp_weight) / 4.0, 4) if sotp_preset else 0.2
@@ -202,7 +204,7 @@ def analyze_endpoint(req: AnalyzeRequest):
     except Exception:
         pass
 
-    return {
+    response_payload = {
         "ticker": std.ticker,
         "market": std.market,
         "source": std.source,
@@ -232,6 +234,21 @@ def analyze_endpoint(req: AnalyzeRequest):
         "result": result,
         "elapsed_seconds": round(elapsed, 2),
     }
+    return _sanitize_floats(response_payload)
+
+
+def _sanitize_floats(obj):
+    import math
+    if isinstance(obj, float):
+        if math.isnan(obj) or math.isinf(obj):
+            return None
+        return obj
+    if isinstance(obj, dict):
+        return {k: _sanitize_floats(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_sanitize_floats(v) for v in obj]
+    return obj
+
 
 
 # ---- /api/recalculate ----

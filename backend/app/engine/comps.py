@@ -66,16 +66,21 @@ class CompsResult:
 def peer_multiples(peers: list) -> list:
     out = []
     for p in peers:
+        ev_sales = p.ev / p.revenue if p.revenue else 0.0
+        ev_ebitda = p.ev / p.ebitda if p.ebitda else 0.0
+        ev_ebit = p.ev / p.ebit if p.ebit else (ev_ebitda * 1.2 if ev_ebitda else 0.0)
+        pe = p.market_cap / p.net_income if p.net_income else 0.0
         out.append(
             PeerMultiples(
                 name=p.name,
-                ev_sales=p.ev / p.revenue,
-                ev_ebitda=p.ev / p.ebitda,
-                ev_ebit=p.ev / p.ebit,
-                pe=p.market_cap / p.net_income,
+                ev_sales=ev_sales,
+                ev_ebitda=ev_ebitda,
+                ev_ebit=ev_ebit,
+                pe=pe,
             )
         )
     return out
+
 
 
 def percentile(values: list, q: float) -> float:

@@ -1,0 +1,23 @@
+market: CN
+debt_includes_lease: true
+lease_accounts: ["租赁负债"]
+accounts:
+  revenue: ["营业总收入"]
+  cogs: ["营业成本"]
+  selling_expense: ["销售费用"]
+  admin_expense: ["管理费用"]
+  rd_expense: ["研发费用"]
+  ebit: ["营业利润"]
+  ebitda: ["EBITDA"]
+  pretax_profit: ["利润总额"]
+  tax_expense: ["所得税费用"]
+  net_income: ["归属于母公司所有者的净利润"]
+  minority_pnl: ["少数股东损益"]
+  da: ["累计折旧"]
+  capex: ["购建固定资产、无形资产和其他长期资产所支付的现金"]
+  eps_diluted: ["稀释每股收益"]
+  cash: ["货币资金"]
+  debt: ["短期借款", "长期借款", "应付债券", "一年内到期的非流动负债"]
+  minority_equity: ["少数股东权益"]
+  shares_diluted: ["实收资本(或股本)"]
+  total_equity: ["归属于母公司股东权益合计"]
