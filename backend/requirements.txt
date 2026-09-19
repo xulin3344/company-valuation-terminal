@@ -6,3 +6,5 @@ yfinance>=0.2
 fastapi>=0.100
 uvicorn>=0.20
 httpx>=0.24
+fpdf2>=2.7
+
