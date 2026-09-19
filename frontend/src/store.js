@@ -8,6 +8,7 @@ export const state = reactive({
   loading: false,
   error: null,
   analyzeResult: null,
+  dataVerification: null,
   assumptions: null,
   result: null,
   recalcTime: 0,
@@ -38,10 +39,12 @@ export async function runAnalyze(ticker, market) {
     state.companyName = data.company_name || data.ticker
     state.market = data.market
     state.analyzeResult = data
+    state.dataVerification = data.data_verification
     state.assumptions = data.assumptions
     state.result = data.result
     state.updateTime = Date.now()
   } catch (e) {
+
 
     state.error = e.response?.data?.detail || e.message
     console.error('[runAnalyze] error', e)

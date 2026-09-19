@@ -360,6 +360,129 @@
           </div>
         </div>
 
+        <!-- 首页居中超大主搜索框 -->
+        <div class="hero-search-container">
+          <!-- 市场快速切换分类 Tabs -->
+          <div class="hero-market-tabs">
+            <button
+              class="hero-tab-btn"
+              :class="{ active: heroMarket === 'ALL' }"
+              @click="setHeroMarket('ALL')"
+            >
+              🌐 全市场检索
+            </button>
+            <button
+              class="hero-tab-btn"
+              :class="{ active: heroMarket === 'HK' }"
+              @click="setHeroMarket('HK')"
+            >
+              🇭🇰 港股 (HK)
+            </button>
+            <button
+              class="hero-tab-btn"
+              :class="{ active: heroMarket === 'US' }"
+              @click="setHeroMarket('US')"
+            >
+              🇺🇸 美股 (US)
+            </button>
+            <button
+              class="hero-tab-btn"
+              :class="{ active: heroMarket === 'CN' }"
+              @click="setHeroMarket('CN')"
+            >
+              🇨🇳 A股 (沪深北)
+            </button>
+          </div>
+
+          <!-- 搜索输入主容器 -->
+          <div class="hero-search-bar-wrap">
+            <span class="hero-search-icon">🔍</span>
+            <input
+              v-model="heroSearchInput"
+              class="hero-search-input"
+              type="text"
+              placeholder="输入代码、公司名或简拼 (如 00700 / 腾讯 / 泡泡玛特 / 00100 / NVDA / 601138)"
+              @input="onHeroSearchInput"
+              @focus="onHeroSearchFocus"
+              @keyup.enter="handleHeroEnterKey"
+              @keydown.down.prevent="navigateHeroResults(1)"
+              @keydown.up.prevent="navigateHeroResults(-1)"
+              @keydown.esc="showHeroSuggestions = false"
+            />
+            <button
+              v-if="heroSearchInput"
+              class="hero-clear-btn"
+              @click="clearHeroInput"
+              title="清除输入"
+            >
+              ✕
+            </button>
+            <button
+              class="hero-submit-btn"
+              @click="handleHeroEnterKey"
+              :disabled="state.loading"
+            >
+              <span v-if="state.loading">估值分析中...</span>
+              <span v-else>⚡ 开始深度估值</span>
+            </button>
+
+            <!-- 首页主搜索联想下拉浮层 -->
+            <div
+              class="hero-search-dropdown"
+              v-if="showHeroSuggestions && heroSuggestions.length > 0"
+            >
+              <div class="hero-dropdown-header">
+                <span>智能联想上市公司 ({{ heroSuggestions.length }})</span>
+                <span class="hero-dropdown-tip">↑↓ 选择 · 回车/点击一键直达估值报告</span>
+              </div>
+              <div
+                v-for="(s, index) in heroSuggestions"
+                :key="s.ticker + s.market"
+                class="hero-dropdown-item"
+                :class="{ active: heroSelectedIndex === index }"
+                @click="chooseHeroSuggestion(s)"
+              >
+                <div class="hero-item-main">
+                  <span class="hero-item-name">{{ s.name }}</span>
+                  <span class="hero-item-ticker mono">{{ s.ticker }}</span>
+                </div>
+                <div class="hero-item-meta">
+                  <span class="hero-item-sector">{{ s.sector }}</span>
+                  <span class="hero-item-badge" :class="'market-' + s.market.toLowerCase()">
+                    {{ s.market === 'HK' ? '🇭🇰 港股' : (s.market === 'US' ? '🇺🇸 美股' : '🇨🇳 A股') }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 热门标的快速直达标签 -->
+          <div class="hero-hot-tags">
+            <span class="hero-hot-label">🔥 热门标的直达:</span>
+            <button class="hero-hot-tag" @click="selectQuick({ name: 'MiniMax', ticker: '00100', market: 'HK' })">
+              <span class="hot-badge-hk">HK</span> 00100 MiniMax
+            </button>
+            <button class="hero-hot-tag" @click="selectQuick({ name: '智谱', ticker: '02513', market: 'HK' })">
+              <span class="hot-badge-hk">HK</span> 02513 智谱
+            </button>
+            <button class="hero-hot-tag" @click="selectQuick({ name: '腾讯控股', ticker: '00700', market: 'HK' })">
+              <span class="hot-badge-hk">HK</span> 00700 腾讯控股
+            </button>
+            <button class="hero-hot-tag" @click="selectQuick({ name: '工业富联', ticker: '601138', market: 'CN' })">
+              <span class="hot-badge-cn">CN</span> 601138 工业富联
+            </button>
+            <button class="hero-hot-tag" @click="selectQuick({ name: '联创电子', ticker: '002036', market: 'CN' })">
+              <span class="hot-badge-cn">CN</span> 002036 联创电子
+            </button>
+            <button class="hero-hot-tag" @click="selectQuick({ name: '英伟达', ticker: 'NVDA', market: 'US' })">
+              <span class="hot-badge-us">US</span> NVDA 英伟达
+            </button>
+            <button class="hero-hot-tag" @click="selectQuick({ name: '泡泡玛特', ticker: '09992', market: 'HK' })">
+              <span class="hot-badge-hk">HK</span> 09992 泡泡玛特
+            </button>
+          </div>
+        </div>
+
         <div class="welcome-cards">
           <div class="welcome-card" @click="selectQuick({ name: '泡泡玛特', ticker: '09992', market: 'HK' })">
             <div class="wc-badge">港股消费潮流</div>
@@ -573,6 +696,142 @@ function handleEnterKey() {
   }
   doAnalyze()
 }
+
+// ==================== 首页主搜索框逻辑 ====================
+const heroSearchInput = ref('')
+const heroMarket = ref('ALL') // 'ALL' | 'HK' | 'US' | 'CN'
+const heroSuggestions = ref([])
+const showHeroSuggestions = ref(false)
+const heroSelectedIndex = ref(-1)
+let heroSearchTimer = null
+
+function setHeroMarket(m) {
+  heroMarket.value = m
+  if (heroSearchInput.value.trim()) {
+    onHeroSearchInput()
+  }
+}
+
+function clearHeroInput() {
+  heroSearchInput.value = ''
+  heroSuggestions.value = []
+  showHeroSuggestions.value = false
+  heroSelectedIndex.value = -1
+}
+
+function onHeroSearchInput() {
+  heroSelectedIndex.value = -1
+  const raw = (heroSearchInput.value || '').trim()
+  if (!raw) {
+    heroSuggestions.value = []
+    showHeroSuggestions.value = false
+    return
+  }
+
+  // 智能识别市场
+  if (/^HK\d+/i.test(raw) || /\.HK$/i.test(raw) || /^\d{5}$/.test(raw)) {
+    if (heroMarket.value !== 'HK') heroMarket.value = 'HK'
+  } else if (/^(SH|SZ|BJ)\d+/i.test(raw) || /\.(SS|SZ|BJ)$/i.test(raw) || /^\d{6}$/.test(raw)) {
+    if (heroMarket.value !== 'CN') heroMarket.value = 'CN'
+  }
+
+  const queryMarket = heroMarket.value === 'ALL' ? undefined : heroMarket.value
+
+  // 1. 本地精准与前缀/拼音字典匹配
+  const local = fuzzySearchStocks(raw, queryMarket)
+  heroSuggestions.value = local
+  showHeroSuggestions.value = local.length > 0
+
+  // 2. 远端接口联想补全
+  if (heroSearchTimer) clearTimeout(heroSearchTimer)
+  heroSearchTimer = setTimeout(async () => {
+    try {
+      const remote = await searchStocks(raw, queryMarket)
+      if (remote && remote.length > 0) {
+        const map = new Map()
+        heroSuggestions.value.forEach(item => map.set(`${item.market}:${item.ticker}`, item))
+        remote.forEach(item => {
+          const k = `${item.market}:${item.ticker}`
+          if (!map.has(k)) {
+            map.set(k, item)
+          }
+        })
+        heroSuggestions.value = Array.from(map.values()).slice(0, 10)
+        showHeroSuggestions.value = heroSuggestions.value.length > 0
+      }
+    } catch (e) {}
+  }, 250)
+}
+
+function onHeroSearchFocus() {
+  const raw = (heroSearchInput.value || '').trim()
+  if (raw) {
+    const queryMarket = heroMarket.value === 'ALL' ? undefined : heroMarket.value
+    heroSuggestions.value = fuzzySearchStocks(raw, queryMarket)
+    showHeroSuggestions.value = heroSuggestions.value.length > 0
+  }
+}
+
+function chooseHeroSuggestion(s) {
+  tickerInput.value = s.ticker
+  marketInput.value = s.market
+  heroSearchInput.value = `${s.ticker} ${s.name}`
+  showHeroSuggestions.value = false
+  doAnalyze()
+}
+
+function navigateHeroResults(direction) {
+  if (!showHeroSuggestions.value || heroSuggestions.value.length === 0) return
+  heroSelectedIndex.value = (heroSelectedIndex.value + direction + heroSuggestions.value.length) % heroSuggestions.value.length
+}
+
+function handleHeroEnterKey() {
+  const raw = (heroSearchInput.value || '').trim()
+  if (!raw) return
+  const rawLower = raw.toLowerCase()
+  const rawDigits = raw.replace(/\D/g, '')
+
+  if (showHeroSuggestions.value && heroSelectedIndex.value >= 0 && heroSuggestions.value[heroSelectedIndex.value]) {
+    chooseHeroSuggestion(heroSuggestions.value[heroSelectedIndex.value])
+    return
+  }
+
+  if (showHeroSuggestions.value && heroSuggestions.value.length > 0) {
+    const topMatch = heroSuggestions.value[0]
+    const topName = (topMatch.name || '').toLowerCase()
+    const topTicker = (topMatch.ticker || '').toLowerCase()
+    const topTickerDigits = topTicker.replace(/\D/g, '')
+
+    if (
+      topName === rawLower
+      || topTicker === rawLower
+      || (rawDigits && topTickerDigits.replace(/^0+/, '') === rawDigits.replace(/^0+/, ''))
+      || topName.includes(rawLower)
+      || (topMatch.pinyin && Array.isArray(topMatch.pinyin) && topMatch.pinyin.some(p => p.toLowerCase() === rawLower))
+    ) {
+      chooseHeroSuggestion(topMatch)
+      return
+    }
+  }
+
+  showHeroSuggestions.value = false
+
+  // 市场推断
+  let targetMarket = heroMarket.value === 'ALL' ? 'CN' : heroMarket.value
+  if (/^HK\d+/i.test(raw) || /\.HK$/i.test(raw) || /^\d{5}$/.test(raw)) {
+    targetMarket = 'HK'
+  } else if (/^(SH|SZ|BJ)\d+/i.test(raw) || /\.(SS|SZ|BJ)$/i.test(raw) || /^\d{6}$/.test(raw)) {
+    targetMarket = 'CN'
+  } else if (/^[A-Z]{1,5}$/i.test(raw) && heroMarket.value === 'US') {
+    targetMarket = 'US'
+  }
+
+  tickerInput.value = raw
+  marketInput.value = targetMarket
+  doAnalyze()
+}
+
+
 
 
 
@@ -1175,6 +1434,284 @@ const healthClass = computed(() => {
 .welcome-icon { font-size: 48px; margin-bottom: 12px; }
 .welcome-title { font-size: 26px; font-weight: 800; color: var(--text-0); margin-bottom: 8px; }
 .welcome-sub { font-size: 14px; color: var(--text-2); line-height: 1.6; }
+
+/* 首页 Hero 主搜索框 */
+.hero-search-container {
+  max-width: 860px;
+  width: 100%;
+  margin: 0 auto 36px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.hero-market-tabs {
+  display: flex;
+  background: var(--bg-1);
+  padding: 4px;
+  border-radius: 24px;
+  border: 1px solid var(--border);
+  gap: 4px;
+}
+
+.hero-tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-2);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.hero-tab-btn:hover {
+  color: var(--text-0);
+  background: var(--bg-2);
+}
+
+.hero-tab-btn.active {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.hero-search-bar-wrap {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  background: var(--bg-1);
+  border: 2px solid var(--border-strong);
+  border-radius: 32px;
+  padding: 6px 8px 6px 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  transition: all 0.25s ease;
+}
+
+.hero-search-bar-wrap:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.15), 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.hero-search-icon {
+  font-size: 20px;
+  color: var(--text-3);
+  margin-right: 12px;
+}
+
+.hero-search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 15px;
+  color: var(--text-0);
+  font-family: inherit;
+}
+
+.hero-search-input::placeholder {
+  color: var(--text-3);
+  font-size: 14px;
+}
+
+.hero-clear-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-3);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 50%;
+  transition: color 0.15s;
+}
+
+.hero-clear-btn:hover {
+  color: var(--text-0);
+}
+
+.hero-submit-btn {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 24px;
+  padding: 10px 22px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hero-submit-btn:hover:not(:disabled) {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+.hero-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 首页联想下拉菜单 */
+.hero-search-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: var(--bg-1);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.3);
+  max-height: 380px;
+  overflow-y: auto;
+  z-index: 50;
+  text-align: left;
+}
+
+.hero-dropdown-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.hero-dropdown-tip {
+  color: var(--text-3);
+  font-weight: 400;
+}
+
+.hero-dropdown-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.hero-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.hero-dropdown-item:hover,
+.hero-dropdown-item.active {
+  background: var(--bg-2);
+}
+
+.hero-item-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hero-item-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-0);
+}
+
+.hero-item-ticker {
+  font-size: 12px;
+  color: var(--accent);
+  background: var(--bg-3);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.hero-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hero-item-sector {
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.hero-item-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+/* 热门标的标签条 */
+.hero-hot-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.hero-hot-label {
+  font-size: 12px;
+  color: var(--text-3);
+  font-weight: 500;
+}
+
+.hero-hot-tag {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: var(--text-1);
+  cursor: pointer;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.hero-hot-tag:hover {
+  background: var(--bg-2);
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.hot-badge-hk {
+  background: rgba(239, 68, 68, 0.12);
+  color: #f87171;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.hot-badge-cn {
+  background: rgba(245, 158, 11, 0.12);
+  color: #fbbf24;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.hot-badge-us {
+  background: rgba(59, 130, 246, 0.12);
+  color: #60a5fa;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
 
 .welcome-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-width: 860px; width: 100%; margin-bottom: 30px; }
 .welcome-card {
