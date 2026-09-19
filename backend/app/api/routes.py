@@ -66,25 +66,35 @@ DEFAULT_PEERS_POOL = PEERS_BY_INDUSTRY["consumer_ip"]
 
 @router.get("/search")
 def search_endpoint(q: str = "", market: Optional[str] = None):
-    """搜索股票代码与公司名称（支持中文、拼音、数字代码）。"""
+    """搜索股票代码与公司名称（支持中文、拼音、数字代码、带市场前后缀）。"""
     q = (q or "").strip()
     if not q:
         return {"results": []}
 
-    from ..data.stock_lookup import search_stocks_remote, COMMON_STOCKS
+    from ..data.stock_lookup import search_stocks_remote, COMMON_STOCKS, clean_query_string
+    clean_q, inferred_mkt = clean_query_string(q)
+    target_market = inferred_mkt or market
+
     results = []
     seen = set()
 
-    q_lower = q.lower()
+    # 1. 优先匹配本地精选常用股票
+    q_lower = clean_q.lower()
     for item in COMMON_STOCKS:
-        if q_lower in item["name"].lower() or q_lower in item["ticker"].lower() or q_lower in item["pinyin"].lower():
+        if (
+            q_lower in item["name"].lower()
+            or q_lower in item["ticker"].lower()
+            or q_lower in item["pinyin"].lower()
+            or (clean_q.isdigit() and item["ticker"].lstrip("0") == clean_q.lstrip("0"))
+        ):
             key = f"{item['market']}:{item['ticker']}"
             if key not in seen:
                 seen.add(key)
                 results.append(item)
 
+    # 2. 实时网络搜索
     try:
-        remote = search_stocks_remote(q, limit=10)
+        remote = search_stocks_remote(clean_q, limit=10)
         for item in remote:
             key = f"{item['market']}:{item['ticker']}"
             if key not in seen:
@@ -93,11 +103,12 @@ def search_endpoint(q: str = "", market: Optional[str] = None):
     except Exception:
         pass
 
-    if market:
-        m = market.upper()
+    if target_market:
+        m = target_market.upper()
         results.sort(key=lambda x: 0 if x.get("market") == m else 1)
 
     return {"results": results[:10]}
+
 
 
 # ---- /api/analyze ----

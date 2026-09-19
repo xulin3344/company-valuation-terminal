@@ -7,8 +7,23 @@ UNIT_SCALE_YUAN_TO_MILLION = 1e-6
 
 
 def normalize_hk_ticker(ticker: str) -> str:
-    code = ticker.split(".")[0].strip()
+    raw = str(ticker).strip()
+    digits = "".join(filter(str.isdigit, raw))
+    if digits:
+        return digits.zfill(5)
+    # 若无数字，尝试名称解析
+    try:
+        from ..stock_lookup import resolve_stock
+        res = resolve_stock(raw, preferred_market="HK")
+        if res and res.get("ticker"):
+            d = "".join(filter(str.isdigit, res["ticker"]))
+            if d:
+                return d.zfill(5)
+    except Exception:
+        pass
+    code = raw.split(".")[0].strip()
     return code.zfill(5)
+
 
 
 def normalize_cn_ticker(ticker: str) -> tuple[str, str]:

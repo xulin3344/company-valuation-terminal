@@ -75,6 +75,8 @@
             <div class="guide-category">
               <div class="guide-cat-title">🇭🇰 港股精选:</div>
               <div class="guide-pills">
+                <span class="guide-pill" @click="selectQuick({ name: 'MiniMax', ticker: '00100', market: 'HK' })">00100 MiniMax</span>
+                <span class="guide-pill" @click="selectQuick({ name: '智谱', ticker: '02513', market: 'HK' })">02513 智谱</span>
                 <span class="guide-pill" @click="selectQuick({ name: '腾讯控股', ticker: '00700', market: 'HK' })">00700 腾讯</span>
                 <span class="guide-pill" @click="selectQuick({ name: '泡泡玛特', ticker: '09992', market: 'HK' })">09992 泡泡玛特</span>
                 <span class="guide-pill" @click="selectQuick({ name: '美团', ticker: '03690', market: 'HK' })">03690 美团</span>
@@ -479,12 +481,13 @@ function onSearchInput() {
     showSuggestions.value = false
     return
   }
-  // 智能市场识别：若输入为 6 位数字，自动切换为 CN A股；5 位数字切换为 HK 港股
-  if (/^\d{6}$/.test(raw)) {
-    marketInput.value = 'CN'
-  } else if (/^\d{5}$/.test(raw)) {
+  // 智能市场识别：支持 HK/SH/SZ/BJ 前后缀及纯数字位数
+  if (/^HK\d+/i.test(raw) || /\.HK$/i.test(raw) || /^\d{5}$/.test(raw)) {
     marketInput.value = 'HK'
+  } else if (/^(SH|SZ|BJ)\d+/i.test(raw) || /\.(SS|SZ|BJ)$/i.test(raw) || /^\d{6}$/.test(raw)) {
+    marketInput.value = 'CN'
   }
+
   // 1. 本地即时响应
   const local = fuzzySearchStocks(raw, marketInput.value)
   suggestions.value = local
@@ -497,12 +500,13 @@ function onSearchInput() {
       const remote = await searchStocks(raw, marketInput.value)
       if (remote && remote.length > 0) {
         const map = new Map()
-        // 先放本地精选
-        suggestions.value.forEach(item => map.set(item.ticker, item))
+        // 先放本地精选（以 market:ticker 复合键去重防串台）
+        suggestions.value.forEach(item => map.set(`${item.market}:${item.ticker}`, item))
         // 追加远程结果
         remote.forEach(item => {
-          if (!map.has(item.ticker)) {
-            map.set(item.ticker, item)
+          const k = `${item.market}:${item.ticker}`
+          if (!map.has(k)) {
+            map.set(k, item)
           }
         })
         suggestions.value = Array.from(map.values()).slice(0, 10)
@@ -511,7 +515,6 @@ function onSearchInput() {
     } catch (e) {}
   }, 250)
 }
-
 
 function onSearchFocus() {
   const raw = (tickerInput.value || '').trim()
@@ -535,28 +538,42 @@ function navigateResults(direction) {
 
 function handleEnterKey() {
   const raw = (tickerInput.value || '').trim()
+  const rawLower = raw.toLowerCase()
+  const rawDigits = raw.replace(/\D/g, '')
+
   if (showSuggestions.value && selectedIndex.value >= 0 && suggestions.value[selectedIndex.value]) {
     chooseSuggestion(suggestions.value[selectedIndex.value])
-  } else if (showSuggestions.value && suggestions.value.length > 0) {
-    // 优先检查首条精确或前缀匹配的名称建议（如输入“联创电子”直接按回车或点分析）
+    return
+  }
+
+  if (showSuggestions.value && suggestions.value.length > 0) {
     const topMatch = suggestions.value[0]
-    if (topMatch.name === raw || topMatch.ticker === raw) {
+    const topName = (topMatch.name || '').toLowerCase()
+    const topTicker = (topMatch.ticker || '').toLowerCase()
+    const topTickerDigits = topTicker.replace(/\D/g, '')
+
+    // 智能容错：精确名称/代码/去零数字/包含/拼音匹配
+    if (
+      topName === rawLower
+      || topTicker === rawLower
+      || (rawDigits && topTickerDigits.replace(/^0+/, '') === rawDigits.replace(/^0+/, ''))
+      || topName.includes(rawLower)
+      || (topMatch.pinyin && Array.isArray(topMatch.pinyin) && topMatch.pinyin.some(p => p.toLowerCase() === rawLower))
+    ) {
       chooseSuggestion(topMatch)
       return
     }
-    showSuggestions.value = false
-    if (/^\d{6}$/.test(raw)) {
-      marketInput.value = 'CN'
-    }
-    doAnalyze()
-  } else {
-    showSuggestions.value = false
-    if (/^\d{6}$/.test(raw)) {
-      marketInput.value = 'CN'
-    }
-    doAnalyze()
   }
+
+  showSuggestions.value = false
+  if (/^HK\d+/i.test(raw) || /\.HK$/i.test(raw) || /^\d{5}$/.test(raw)) {
+    marketInput.value = 'HK'
+  } else if (/^(SH|SZ|BJ)\d+/i.test(raw) || /\.(SS|SZ|BJ)$/i.test(raw) || /^\d{6}$/.test(raw)) {
+    marketInput.value = 'CN'
+  }
+  doAnalyze()
 }
+
 
 
 // 侧边栏拖拽调宽

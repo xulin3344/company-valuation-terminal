@@ -2,6 +2,51 @@
 export const STOCK_DATABASE = [
   // 港股 (HK)
   {
+    ticker: '00100',
+    name: 'MiniMax',
+    fullName: 'MiniMax Group Inc. (名之梦科技有限公司)',
+    enName: 'MiniMax Group Inc.',
+    market: 'HK',
+    exchange: '香港联合交易所主板 (HKEX: 00100)',
+    ipoYear: '2024年',
+    currency: 'HKD (港币)',
+    pinyin: ['minimax', 'mzx', 'mingzhimeng', '100', '00100'],
+    sector: '通用人工智能 / 大语言模型与多模态 AGI',
+    businessModel: '国内顶级生成式 AI 大模型独角兽，自主研发万亿参数 MoE 文本大模型、ABAB 语音与视频生成模型，为全球开发者与 C 端用户提供海量 API 接口及 AI 原生应用（如星野、Talkie、海螺AI）。',
+    companyType: '通用大模型与多模态 AI 顶级领军标的',
+    typeTag: '多模态AGI/大模型独角兽',
+    financialTraits: ['高研发投入与算力集群资本支出', '海外与国内 C 端商业化高增', '现金储备丰厚'],
+    advice: {
+      primary: { method: 'comps_pe', name: 'EV/Sales 市销率与科技可比倍数', weight: '45%', reason: '作为高增长但阶段性算力投入巨大的 AGI 研发主体，市销率 (P/S 或 EV/Sales) 能最合理衡量其底层技术资产与开发者调用商业化规模。' },
+      secondary: { method: 'dcf_exit', name: 'DCF 退出乘数法 (远期现金流)', weight: '35%', reason: '以远期 3~5 年商业化稳态及终端算力利用率，测算长期折现价值。' },
+      tertiary: { method: 'comps_ev_ebitda', name: 'EV/EBITDA 可比倍数', weight: '10%', reason: '对标成熟 AI 平台级服务商。' },
+      auxiliary: { method: 'dcf_gordon', name: 'Gordon 永续法', weight: '10%', reason: '永续增长率需保守审慎。' },
+      caution: { method: 'sotp', name: 'SOTP 分部加总', note: '多模态模型底层技术栈高度协同，分拆必要性较低。' }
+    }
+  },
+  {
+    ticker: '02513',
+    name: '智谱',
+    fullName: '北京智谱华章科技有限公司 (Zhipu AI / Z.AI)',
+    enName: 'Zhipu AI (GLM)',
+    market: 'HK',
+    exchange: '香港联合交易所主板 (HKEX: 02513)',
+    ipoYear: '2024年',
+    currency: 'HKD (港币)',
+    pinyin: ['zp', 'zhipu', 'zhipuhuazhang', 'glm', '2513', '02513'],
+    sector: '认知大模型 / 具身智能与大模型企业级底座',
+    businessModel: '清华系全自研底座大模型领航者，打造 GLM 双语预训练大模型架构与 CogView/CogVideo 多模态阵列，为金融、政务、央国企提供私有化大模型定制，并服务超千万级开发者。',
+    companyType: '国家级认知智能大模型基础设施底座',
+    typeTag: '硬核大模型/企业级智算底座',
+    financialTraits: ['技术专利与全栈自研壁垒极深', '政企私有化部署毛利率高', '开发者生态调用量几何级扩张'],
+    advice: {
+      primary: { method: 'comps_pe', name: 'EV/Sales 市销率与同业倍数', weight: '45%', reason: '大模型底座竞争以技术渗透率与年度经常性收入 (ARR) 为先导，市销率估值最符合大模型阶段性定价共识。' },
+      secondary: { method: 'dcf_exit', name: 'DCF 退出乘数法', weight: '35%', reason: '测算大模型规模商业化、推理成本断崖式下降后的稳态现金流。' },
+      tertiary: { method: 'sotp', name: 'SOTP 分部加总估值', weight: '10%', reason: '企业级私有化软件与公有云 API 订阅商业模式分化考量。' },
+      auxiliary: { method: 'dcf_gordon', name: 'Gordon 永续增长法', weight: '10%', reason: '长期基准折现校验。' }
+    }
+  },
+  {
     ticker: '09992',
     name: '泡泡玛特',
     fullName: '泡泡玛特国际集团有限公司 (POP MART International Group Limited)',
@@ -10,6 +55,8 @@ export const STOCK_DATABASE = [
     exchange: '香港联合交易所有限公司 (HKEX 主板)',
     ipoYear: '2020年',
     currency: 'CNY (人民币计价/港币交易)',
+    pinyin: ['ppmt', 'paopao', 'paopaomate', 'popmart', '9992', '09992'],
+
     sector: '潮流文化与IP衍生品运营',
     businessModel: '以潮玩IP（如 MOLLY、SKULLPANDA、LABUBU/THE MONSTERS、DIMOO）为核心，涵盖IP孵化、盲盒/手办设计零售、海外直营门店扩张及主题乐园乐园衍生。',
     companyType: '高成长品牌消费与全球化IP运营龙头',
@@ -32,6 +79,7 @@ export const STOCK_DATABASE = [
     exchange: '香港联合交易所 (HKEX 恒生指数核心权重股)',
     ipoYear: '2004年',
     currency: 'RMB (报告币种) / HKD (交易币种)',
+    pinyin: ['txkg', 'tengxun', 'tx', '700', '00700'],
     sector: '互联网平台 / 社交与数字娱乐',
     businessModel: '以微信/QQ为国民级流量底座，构建增值服务（网络游戏/社交网络）、网络广告、金融科技与企业服务（微信支付/腾讯云/AI）三驾马车及庞大外部投资版图。',
     companyType: '平台型多元化科技互联网控股集团',
@@ -421,14 +469,19 @@ export function getCompanyProfile(ticker, market, financials, analyzeResult) {
     primaryReason = '当前净利润尚未充分释放或为负数，传统P/E失真，建议重点以市销率、企业价值倍数及远期现金流折现为核心。'
   }
 
+  const compName = analyzeResult?.company_name && analyzeResult?.company_name !== ticker
+    ? analyzeResult.company_name
+    : `${ticker} 上市公司`
+
   return {
     isCurated: false,
     ticker: ticker,
-    name: `${ticker} 上市公司`,
-    fullName: `${ticker} (${market} 交易所挂牌证券)`,
-    enName: `${ticker} Corporation`,
+    name: compName,
+    fullName: `${compName} (${ticker}.${market})`,
+    enName: analyzeResult?.en_name || compName,
     market: market,
     exchange: market === 'HK' ? '香港交易所 (HKEX)' : (market === 'US' ? '美国证券市场 (NASDAQ/NYSE)' : '中国A股市场 (SSE/SZSE)'),
+
     ipoYear: '公开上市',
     currency: currency,
     sector: '公开资本市场挂牌行业',
