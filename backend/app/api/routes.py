@@ -11,6 +11,7 @@ from ..data.models import StandardFinancials
 from .orchestrator import run_full_valuation
 from .pdf_export import generate_pdf
 from . import store
+from ..config.sotp_presets import get_sotp_preset
 
 
 router = APIRouter(prefix="/api")
@@ -146,26 +147,40 @@ def analyze_endpoint(req: AnalyzeRequest):
             "shares": shares,
         }
 
+    sotp_preset = get_sotp_preset(ticker)
+    sotp_segments = sotp_preset["segments"] if sotp_preset else []
+    sotp_params = None
+    sotp_weight = sotp_preset.get("weight", 0.2) if sotp_preset else 0.2
+    rem_weight = round((1.0 - sotp_weight) / 4.0, 4) if sotp_preset else 0.2
+
     summary = {
         "models": [
-            {"key": "dcf_gordon", "label": "DCF 永续增长法", "weight": 0.2},
-            {"key": "dcf_exit", "label": "DCF 退出乘数法", "weight": 0.2},
-            {"key": "comps_pe", "label": "可比公司 P/E 乘数法", "weight": 0.2},
-            {"key": "comps_ev_ebitda", "label": "可比公司 EV/EBITDA 乘数法", "weight": 0.2},
-            {"key": "sotp", "label": "分部加总估值法 (SOTP)", "weight": 0.2},
+            {"key": "dcf_gordon", "label": "DCF 永续增长法", "weight": rem_weight},
+            {"key": "dcf_exit", "label": "DCF 退出乘数法", "weight": rem_weight},
+            {"key": "comps_pe", "label": "可比公司 P/E 乘数法", "weight": rem_weight},
+            {"key": "comps_ev_ebitda", "label": "可比公司 EV/EBITDA 乘数法", "weight": rem_weight},
+            {"key": "sotp", "label": "分部加总估值法 (SOTP)", "weight": sotp_weight},
         ],
         "current_price": price or 1.0,
         "target_net_income": target.net_income if target else None,
         "target_ebitda": target.ebitda if target else None,
-        "sotp_segments": [],
+        "sotp_segments": sotp_segments,
     }
+
+    if sotp_preset:
+        sotp_params = {
+            "segments": sotp_segments,
+            "cash": cash,
+            "debt": debt,
+            "shares": shares,
+        }
 
     params = {
         "wacc_inputs": wacc_inputs,
         "forecast_assumptions": forecast_assumptions,
         "dcf_params": dcf_params,
         "comps": comps,
-        "sotp": None,
+        "sotp": sotp_params,
         "summary": summary,
     }
 

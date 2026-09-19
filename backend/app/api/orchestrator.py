@@ -154,15 +154,19 @@ def _run_comps(comps_params: dict) -> dict:
 
 
 def _run_sotp(sotp_params: dict) -> dict:
-    segments = [_to_segment(s) for s in sotp_params["segments"]]
+    segments = [_to_segment(s) for s in sotp_params.get("segments", [])]
     if not segments:
         return None
+    cash = float(sotp_params.get("cash", 0.0) or 0.0)
+    debt = float(sotp_params.get("debt", 0.0) or 0.0)
+    minority_interest = float(sotp_params.get("minority_interest", 0.0) or 0.0)
+    shares = float(sotp_params.get("shares", 1.0) or 1.0)
     res = sotp_valuation(
         segments=segments,
-        cash=sotp_params["cash"],
-        debt=sotp_params["debt"],
-        minority_interest=sotp_params.get("minority_interest", 0.0),
-        shares=sotp_params["shares"],
+        cash=cash,
+        debt=debt,
+        minority_interest=minority_interest,
+        shares=shares,
     )
     sens = None
     sens_cfg = sotp_params.get("sensitivity")
@@ -172,10 +176,10 @@ def _run_sotp(sotp_params: dict) -> dict:
             exp_ebit=sens_cfg["exp_ebit"],
             core_mults=sens_cfg["core_mults"],
             exp_mults=sens_cfg["exp_mults"],
-            cash=sotp_params["cash"],
-            debt=sotp_params["debt"],
-            minority_interest=sotp_params.get("minority_interest", 0.0),
-            shares=sotp_params["shares"],
+            cash=cash,
+            debt=debt,
+            minority_interest=minority_interest,
+            shares=shares,
         )
         sens = {"matrix": sens_matrix}
 

@@ -119,13 +119,47 @@
         </table>
       </div>
     </div>
+
+    <!-- SOTP 分部加总快捷配置与状态卡片 -->
+    <div class="card" style="margin-top:20px">
+      <div class="card-header-clean">
+        <div class="card-title">🧩 SOTP 分部加总参数 (Sum of the Parts)</div>
+        <span class="card-hint">适用于具有多元业务板块的控股集团</span>
+      </div>
+      <div class="sotp-summary-row">
+        <div class="sotp-status-info">
+          <div class="sotp-badge-row">
+            <span class="sotp-status-badge" :class="sotpSegmentCount > 0 ? 'active' : 'inactive'">
+              {{ sotpSegmentCount > 0 ? `已激活: ${sotpSegmentCount} 个业务分部` : '暂未配置业务分部 (处于自降级状态)' }}
+            </span>
+            <span class="sotp-price-metric" v-if="state.result?.sotp?.base?.implied_price">
+              基准估值中枢: <b class="mono accent">¥{{ state.result.sotp.base.implied_price.toFixed(2) }}</b>
+            </span>
+          </div>
+          <span class="sotp-desc">
+            {{ sotpSegmentCount > 0 
+              ? '当前标的已通过投行分部模型拆解估值，可在 SOTP 工作台随时编辑分部参数并实时重算。'
+              : '针对小米、腾讯、美团、阿里等多元化集团，可前往 SOTP 工作台一键套用标准分部模板并参与加权汇总。' }}
+          </span>
+        </div>
+        <button class="btn btn-sm btn-primary" @click="emit('navigate', 'sotp')">
+          前往 SOTP 交互工作台 ➔
+        </button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { reactive, watch } from 'vue'
+import { reactive, watch, computed } from 'vue'
 import { state, scheduleRecalculate } from '../store.js'
 import { formatPercent } from '../utils/financials.js'
+
+const emit = defineEmits(['navigate'])
+
+const sotpSegmentCount = computed(() => {
+  return state.assumptions?.sotp?.segments?.length || state.result?.sotp?.contributions?.length || 0
+})
 
 const waccFields = [
   { key: 'rf', label: '无风险利率 (Rf)', hint: '通常取10年期国债收益率' },
@@ -257,9 +291,42 @@ function pct(v, d = 2) { return formatPercent(v, d) }
 .font-semibold { font-weight: 600; }
 .font-bold { font-weight: 700; }
 
+.sotp-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--bg-2);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.sotp-status-info { display: flex; flex-direction: column; gap: 6px; }
+.sotp-badge-row { display: flex; align-items: center; gap: 12px; }
+.sotp-status-badge {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.sotp-status-badge.active {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+.sotp-status-badge.inactive {
+  background: var(--bg-3);
+  color: var(--text-3);
+  border: 1px solid var(--border);
+}
+.sotp-price-metric { font-size: 13px; color: var(--text-1); }
+.sotp-desc { font-size: 12px; color: var(--text-3); max-width: 600px; line-height: 1.4; }
+
 @media (max-width: 900px) {
   .grid-2 { grid-template-columns: 1fr; }
   .param-grid { grid-template-columns: 1fr; }
   .param-box.full-span { grid-column: span 1; }
+  .sotp-summary-row { flex-direction: column; align-items: flex-start; }
 }
 </style>

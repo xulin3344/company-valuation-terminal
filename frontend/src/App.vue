@@ -330,7 +330,7 @@
           <!-- 02 财务总览 -->
           <Overview v-else-if="tab === 'overview'" />
           <!-- 03 假设参数 -->
-          <Assumptions v-else-if="tab === 'assumptions'" />
+          <Assumptions v-else-if="tab === 'assumptions'" @navigate="handleModelNavigation" />
           <!-- 04 DCF 估值: Gordon 永续法 或 Exit 退出乘数法 -->
           <DCFView v-else-if="tab === 'dcf_gordon' || tab === 'dcf_exit' || tab === 'dcf'" :focusMethod="tab" />
           <!-- 04 可比公司估值: P/E 市盈率法 或 EV/EBITDA 倍数法 -->
