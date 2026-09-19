@@ -72,6 +72,20 @@ def normalize_yf_ticker(ticker: str, market: str = None) -> tuple[str, str, str]
     digits = "".join(filter(str.isdigit, raw))
     m = str(market).upper() if market else None
 
+    # 如果没有数字，尝试智能解析
+    if not digits and not raw.upper().endswith((".SZ", ".SS", ".BJ", ".HK")):
+        try:
+            from ..stock_lookup import resolve_stock
+            res = resolve_stock(raw, preferred_market=m)
+            if res and res.get("ticker"):
+                ticker = res["ticker"]
+                raw = ticker
+                digits = "".join(filter(str.isdigit, raw))
+                if not m:
+                    m = res.get("market")
+        except Exception:
+            pass
+
     # A 股识别
     if m == "CN" or (m is None and len(digits) == 6 and not raw.upper().endswith(".HK")):
         if raw.upper().endswith((".SZ", ".SS", ".BJ")):
@@ -80,14 +94,15 @@ def normalize_yf_ticker(ticker: str, market: str = None) -> tuple[str, str, str]
             return f"{digits}.SS", "CN", "CNY"
         elif digits.startswith(("8", "4", "920")):
             return f"{digits}.BJ", "CN", "CNY"
-        else:
+        elif digits:
             return f"{digits}.SZ", "CN", "CNY"
 
     # 港股识别
     if m == "HK" or (m is None and (raw.upper().endswith(".HK") or len(digits) == 5)):
         clean = raw.split(".")[0].strip()
-        code = digits.zfill(4)[-4:]  # 港股在 yfinance 常用 4 位，如 0700.HK
+        code = digits.zfill(4)[-4:] if digits else clean  # 港股在 yfinance 常用 4 位，如 0700.HK
         return f"{code}.HK", "HK", "HKD"
+
 
     return raw, m or "US", "USD"
 

@@ -17,6 +17,19 @@ def normalize_cn_ticker(ticker: str) -> tuple[str, str]:
     digits = "".join(filter(str.isdigit, raw))
     if len(digits) == 6:
         code = digits
+    else:
+        # 若不是6位数字，尝试智能名称/拼音解析
+        try:
+            from ..stock_lookup import resolve_stock
+            res = resolve_stock(raw, preferred_market="CN")
+            if res and res.get("ticker") and len(res["ticker"]) == 6:
+                code = res["ticker"]
+            else:
+                code = raw.split(".")[0].strip().lower()
+        except Exception:
+            code = raw.split(".")[0].strip().lower()
+
+    if len(code) == 6 and code.isdigit():
         if code.startswith(("6", "9", "688")):
             prefix = "sh"
         elif code.startswith(("8", "4", "920")):
@@ -24,9 +37,9 @@ def normalize_cn_ticker(ticker: str) -> tuple[str, str]:
         else:
             prefix = "sz"
         return code, f"{prefix}{code}"
-    # 若无法提取出6位纯数字，回退清洗原字符串
-    clean = raw.split(".")[0].strip().lower()
-    return clean, clean
+
+    return code, code
+
 
 
 def _prepare_long_frame(df):

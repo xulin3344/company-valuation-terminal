@@ -111,3 +111,28 @@ def test_cn_standardization():
     fa = build_forecast_assumptions(std)
     assert fa.tax_rate == 0.25
     assert fa.base_revenue == 12000.0
+
+
+def test_resolve_stock_and_chinese_name():
+    from app.data.stock_lookup import resolve_stock
+    # 测试中文名称解析
+    res = resolve_stock("工业富联", preferred_market="CN")
+    assert res is not None
+    assert res["ticker"] == "601138"
+    assert res["market"] == "CN"
+
+    # 测试拼音缩写解析
+    res_py = resolve_stock("gyfl", preferred_market="CN")
+    assert res_py is not None
+    assert res_py["ticker"] == "601138"
+
+    # 测试提供器对中文名自动解析
+    code, sym = normalize_cn_ticker("工业富联")
+    assert code == "601138"
+    assert sym == "sh601138"
+
+    yf_t, market, curr = normalize_yf_ticker("工业富联", "CN")
+    assert yf_t == "601138.SS"
+    assert market == "CN"
+    assert curr == "CNY"
+

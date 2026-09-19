@@ -56,6 +56,13 @@ def build_providers(market: str) -> list:
 
 
 def analyze(ticker: str, market: str, manual_data: dict = None) -> StandardFinancials:
+    # 智能解析公司名称/拼音代码
+    from .stock_lookup import resolve_stock
+    resolved = resolve_stock(ticker, preferred_market=market)
+    if resolved:
+        ticker = resolved.get("ticker") or ticker
+        market = resolved.get("market") or market
+
     if manual_data is not None:
         raw = ManualProvider(manual_data).fetch(ticker)
     else:
@@ -65,6 +72,7 @@ def analyze(ticker: str, market: str, manual_data: dict = None) -> StandardFinan
     std = mapper.standardize(raw)
     std.quality = check_quality(std)
     return std
+
 
 
 # ---- 汇率桥接（Fix 1）----

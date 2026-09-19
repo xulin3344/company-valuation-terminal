@@ -64,12 +64,56 @@ PEERS_BY_INDUSTRY = {
 DEFAULT_PEERS_POOL = PEERS_BY_INDUSTRY["consumer_ip"]
 
 
+@router.get("/search")
+def search_endpoint(q: str = "", market: Optional[str] = None):
+    """搜索股票代码与公司名称（支持中文、拼音、数字代码）。"""
+    q = (q or "").strip()
+    if not q:
+        return {"results": []}
+
+    from ..data.stock_lookup import search_stocks_remote, COMMON_STOCKS
+    results = []
+    seen = set()
+
+    q_lower = q.lower()
+    for item in COMMON_STOCKS:
+        if q_lower in item["name"].lower() or q_lower in item["ticker"].lower() or q_lower in item["pinyin"].lower():
+            key = f"{item['market']}:{item['ticker']}"
+            if key not in seen:
+                seen.add(key)
+                results.append(item)
+
+    try:
+        remote = search_stocks_remote(q, limit=10)
+        for item in remote:
+            key = f"{item['market']}:{item['ticker']}"
+            if key not in seen:
+                seen.add(key)
+                results.append(item)
+    except Exception:
+        pass
+
+    if market:
+        m = market.upper()
+        results.sort(key=lambda x: 0 if x.get("market") == m else 1)
+
+    return {"results": results[:10]}
+
+
 # ---- /api/analyze ----
 
 @router.post("/analyze")
 def analyze_endpoint(req: AnalyzeRequest):
     """抓取财报 → 标准化 → 自动假设 → 引擎全跑 → 完整估值结果。"""
     t0 = time.time()
+    from ..data.stock_lookup import resolve_stock
+    resolved = resolve_stock(req.ticker, preferred_market=req.market)
+    company_name = ""
+    if resolved:
+        company_name = resolved.get("name", "")
+        req.ticker = resolved.get("ticker", req.ticker)
+        req.market = resolved.get("market", req.market)
+
     try:
         std = fetch_and_standardize(req.ticker, req.market)
     except Exception as exc:
@@ -80,6 +124,7 @@ def analyze_endpoint(req: AnalyzeRequest):
         fa = build_forecast_assumptions(std)
     except Exception as exc:
         raise HTTPException(status_code=422, detail=f"assumption generation failed: {exc}")
+
 
     # 升级 1：合并动态 WACC 参数（Rf/Beta/资本结构来自市场实时数据）
     wacc_defaults = inputs.get("default_wacc_inputs") or {"rf": 0.042, "erp": 0.050, "size_premium": 0.0, "tax_rate": 0.21}
@@ -206,9 +251,11 @@ def analyze_endpoint(req: AnalyzeRequest):
 
     response_payload = {
         "ticker": std.ticker,
+        "company_name": company_name or std.ticker,
         "market": std.market,
         "source": std.source,
         "currency": std.currency,
+
         "health": std.quality.health if std.quality else None,
         "analyst_estimates": analyst_data,
         "market_overview": market_overview,

@@ -7,6 +7,16 @@ export async function analyze(ticker, market) {
   return data
 }
 
+export async function searchStocks(query, market = '') {
+  try {
+    const { data } = await api.get('/search', { params: { q: query, market } })
+    return data?.results || []
+  } catch (e) {
+    return []
+  }
+}
+
+
 export async function recalculate(params) {
   const { data } = await api.post('/recalculate', params)
   return data

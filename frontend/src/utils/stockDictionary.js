@@ -182,6 +182,29 @@ export const STOCK_DATABASE = [
 
   // A股 (CN)
   {
+    ticker: '601138',
+    name: '工业富联',
+    fullName: '富士康工业互联网股份有限公司 (Foxconn Industrial Internet Co., Ltd.)',
+    enName: 'Foxconn Industrial Internet (FII)',
+    market: 'CN',
+    exchange: '上海证券交易所主板 (SSE: 601138)',
+    ipoYear: '2018年',
+    currency: 'CNY (人民币)',
+    pinyin: ['gyfl', 'gongyefulian', 'fulian', 'fii'],
+    sector: 'AI服务器 / 云计算精密制造 / 工业互联网',
+    businessModel: '全球算力基础设施代工龙头，全面卡位英伟达 Blackwell/Hopper 系列 AI 算力服务器（如 GB200、HGX）及液冷机柜研发与垂直整合制造，并涵盖高速交换机、网络设备及数字制造服务。',
+    companyType: '全球 AI 算力硬件制造航母与英伟达核心产业链',
+    typeTag: 'AI算力基础设施/英伟达核心链',
+    financialTraits: ['AI服务器出货量爆发高增', '全球供应链与精密垂直制造壁垒', '现金流充裕/营运资本周转极快'],
+    advice: {
+      primary: { method: 'dcf_exit', name: 'DCF 退出乘数法 (EV/EBITDA)', weight: '45%', reason: '全球大模型与云计算厂商资本开支周期驱动，未来3~5年AI服务器出货量确定性强，Exit Multiple 能合理折射AI军备竞赛成熟后的稳态退出倍数。' },
+      secondary: { method: 'comps_pe', name: 'P/E 市盈率法 / PEG', weight: '30%', reason: '对标全球算力制造代工龙头（如鸿海、广达、纬创、超微电脑），以净利润增长匹配合理PE估值倍数。' },
+      tertiary: { method: 'dcf_gordon', name: 'Gordon 永续增长法', weight: '15%', reason: '作为内生现金流基准检验，但需注意全球硬件代工周期的稳态增长假设。' },
+      auxiliary: { method: 'comps_ev_ebitda', name: 'EV/EBITDA 可比倍数', weight: '10%', reason: '考量企业整体资本开支与折旧后的企业价值倍数对比。' },
+      caution: { method: 'sotp', name: 'SOTP 分部加总', note: '云计算服务器主营占比超六成且增长主导，主业高度集中，分部加总必要性较低。' }
+    }
+  },
+  {
     ticker: '002036',
     name: '联创电子',
     fullName: '联创电子科技股份有限公司 (Lianchuang Electronic Technology Co., Ltd.)',

@@ -2,7 +2,7 @@
   <div class="app-layout" @mousemove="onDrag" @mouseup="stopDrag" @mouseleave="stopDrag">
     <!-- 侧边栏 -->
     <aside class="sidebar" :style="{ width: sidebarWidth + 'px' }">
-      <div class="sidebar-header">
+      <div class="sidebar-header" @click="goHome" title="点击回到首页" style="cursor: pointer">
         <div class="logo">V</div>
         <div class="header-info">
           <div class="logo-text">万能估值终端</div>
@@ -97,10 +97,11 @@
             <div class="guide-category">
               <div class="guide-cat-title">🇨🇳 A股精选:</div>
               <div class="guide-pills">
+                <span class="guide-pill" @click="selectQuick({ name: '工业富联', ticker: '601138', market: 'CN' })">601138 工业富联</span>
+                <span class="guide-pill" @click="selectQuick({ name: '联创电子', ticker: '002036', market: 'CN' })">002036 联创电子</span>
                 <span class="guide-pill" @click="selectQuick({ name: '贵州茅台', ticker: '600519', market: 'CN' })">600519 茅台</span>
                 <span class="guide-pill" @click="selectQuick({ name: '比亚迪', ticker: '002594', market: 'CN' })">002594 比亚迪</span>
                 <span class="guide-pill" @click="selectQuick({ name: '宁德时代', ticker: '300750', market: 'CN' })">300750 宁德时代</span>
-                <span class="guide-pill" @click="selectQuick({ name: '招商银行', ticker: '600036', market: 'CN' })">600036 招行</span>
               </div>
             </div>
           </div>
@@ -292,7 +293,7 @@
       <!-- 顶部状态栏 -->
       <div class="top-nav" v-if="state.ticker && state.analyzeResult">
         <div class="breadcrumbs">
-          <span class="bc-home">万能估值终端</span>
+          <span class="bc-home" @click="goHome" title="点击回到首页">万能估值终端</span>
           <span class="bc-slash">/</span>
           <span class="bc-market">{{ state.market }}</span>
           <span class="bc-slash">/</span>
@@ -323,7 +324,7 @@
       </div>
 
       <!-- 主视图路由内容 -->
-      <template v-else-if="state.result">
+      <template v-else-if="state.result && tab !== 'home'">
         <div class="view-transition">
           <!-- 01 公司档案与估值诊断 -->
           <CompanyProfileView v-if="tab === 'profile'" @navigate="handleModelNavigation" />
@@ -342,7 +343,7 @@
         </div>
       </template>
 
-      <!-- 欢迎空状态 Hub -->
+      <!-- 欢迎空状态 Hub / 首页 -->
       <div v-else class="welcome-hub">
         <div class="welcome-header">
           <div class="welcome-icon">📈</div>
@@ -350,6 +351,11 @@
           <p class="welcome-sub">
             融合内生价值（DCF 现金流折现）、相对估值（可比公司行业倍数）、分部加总（SOTP）与敏感性决策矩阵
           </p>
+          <div v-if="state.result" style="margin-top:16px">
+            <button class="btn btn-primary" @click="tab = 'profile'">
+              ➔ 继续查看当前已分析标的 ({{ state.ticker }})
+            </button>
+          </div>
         </div>
 
         <div class="welcome-cards">
@@ -437,7 +443,8 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { state, runAnalyze } from './store.js'
 import {
   saveProject, listProjects, loadProject, deleteProject,
-  exportProject, exportProjectPDF, exportAllProjects, exportAllProjectsPDF, exportSelectedProjects
+  exportProject, exportProjectPDF, exportAllProjects, exportAllProjectsPDF, exportSelectedProjects,
+  searchStocks
 } from './api.js'
 import CompanyProfileView from './components/CompanyProfileView.vue'
 import Overview from './components/Overview.vue'
@@ -462,6 +469,7 @@ const showSuggestions = ref(false)
 const suggestions = ref([])
 const selectedIndex = ref(-1)
 const showGuide = ref(true)
+let searchTimer = null
 
 function onSearchInput() {
   selectedIndex.value = -1
@@ -477,9 +485,33 @@ function onSearchInput() {
   } else if (/^\d{5}$/.test(raw)) {
     marketInput.value = 'HK'
   }
-  suggestions.value = fuzzySearchStocks(raw, marketInput.value)
+  // 1. 本地即时响应
+  const local = fuzzySearchStocks(raw, marketInput.value)
+  suggestions.value = local
   showSuggestions.value = suggestions.value.length > 0
+
+  // 2. 远端接口联想补全（支持全市场 5000+ A股、港美股与拼音）
+  if (searchTimer) clearTimeout(searchTimer)
+  searchTimer = setTimeout(async () => {
+    try {
+      const remote = await searchStocks(raw, marketInput.value)
+      if (remote && remote.length > 0) {
+        const map = new Map()
+        // 先放本地精选
+        suggestions.value.forEach(item => map.set(item.ticker, item))
+        // 追加远程结果
+        remote.forEach(item => {
+          if (!map.has(item.ticker)) {
+            map.set(item.ticker, item)
+          }
+        })
+        suggestions.value = Array.from(map.values()).slice(0, 10)
+        showSuggestions.value = suggestions.value.length > 0
+      }
+    } catch (e) {}
+  }, 250)
 }
+
 
 function onSearchFocus() {
   const raw = (tickerInput.value || '').trim()
@@ -582,9 +614,19 @@ function handleModelNavigation(methodKey) {
   modelsMenuOpen.value = true
 }
 
+function goHome() {
+  tab.value = 'home'
+}
+
 async function doAnalyze() {
   if (!tickerInput.value) return
   await runAnalyze(tickerInput.value.trim(), marketInput.value)
+  if (state.ticker) {
+    tickerInput.value = state.ticker
+  }
+  if (state.market) {
+    marketInput.value = state.market
+  }
   tab.value = 'profile'
 }
 
@@ -745,6 +787,22 @@ const healthClass = computed(() => {
   gap: 12px;
   padding: 18px 20px;
   border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.sidebar-header:hover {
+  background: var(--bg-2);
+}
+
+.sidebar-header:hover .logo {
+  transform: scale(1.05);
+  box-shadow: 0 0 16px var(--accent);
+}
+
+.sidebar-header:hover .logo-text {
+  color: var(--accent);
 }
 
 .logo {
@@ -1067,13 +1125,19 @@ const healthClass = computed(() => {
 /* 主区域 */
 .content { flex: 1; overflow-y: auto; padding: 0; display: flex; flex-direction: column; background: var(--bg-0); }
 .top-nav {
-  padding: 12px 28px; border-bottom: 1px solid var(--border);
+  padding: 10px 28px; border-bottom: 1px solid var(--border);
   background: var(--bg-1); display: flex; justify-content: space-between; align-items: center;
 }
 .breadcrumbs { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-2); font-weight: 500; }
+.bc-home { cursor: pointer; transition: color 0.15s; font-weight: 600; }
+.bc-home:hover { color: var(--accent); }
 .bc-slash { color: var(--text-3); font-size: 12px; }
 .bc-ticker { font-weight: 700; }
 .bc-price { margin-left: 12px; font-family: var(--font-mono); font-size: 12px; color: var(--text-0); background: var(--bg-2); padding: 2px 8px; border-radius: 4px; }
+
+.top-actions { display: flex; align-items: center; gap: 10px; }
+
+
 .view-transition { padding: 24px 28px; animation: fade-in 0.25s ease-out; }
 
 @keyframes fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
