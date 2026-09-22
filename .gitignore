@@ -38,3 +38,10 @@ Thumbs.db
 # Assistant / Tool Internals
 .arts/
 .codeartsdoer/
+
+# Desktop Packaging
+*.spec
+*.log
+edge_app_data/
+edge_profile/
+*.zip

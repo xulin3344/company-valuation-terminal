@@ -9,8 +9,13 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
+import sys
 
-DEFAULT_DB_PATH = Path(__file__).resolve().parents[2] / "data" / "projects.db"
+if getattr(sys, "frozen", False):
+    # 打包为 exe 时，将用户项目数据持久化在当前 exe 所在目录下的 data 目录中，避免打包在临时释放目录
+    DEFAULT_DB_PATH = Path(sys.executable).resolve().parent / "data" / "projects.db"
+else:
+    DEFAULT_DB_PATH = Path(__file__).resolve().parents[2] / "data" / "projects.db"
 
 
 def _connect(db_path: Path = None) -> sqlite3.Connection:
